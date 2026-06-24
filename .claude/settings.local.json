@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"/home/dudu/Documentos/GitHub/Pokedex Competitiva\" && echo \"=== FORMATS map \\(tier -> format id\\) ===\" && grep -n \"FORMATS\\\\s*=\\\\|FORMATS=\" node_modules/@pkmn/smogon/build/index.js | head -3 && sed -n '/var FORMATS = {/,/};/p' node_modules/@pkmn/smogon/build/index.js | head -40)"
+    ],
+    "additionalDirectories": [
+      "/home/dudu/Documentos/GitHub/Pokedex Competitiva/node_modules/@pkmn/smogon/build"
+    ]
+  }
+}
