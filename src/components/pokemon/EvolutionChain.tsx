@@ -78,11 +78,13 @@ function EvoTreeNode({ node, currentName, showTrigger }: NodeProps) {
       )}
 
       {node.children.length > 1 && (
-        // Multiple options: stack in a column, each with its own trigger
+        // Multiple options: stack in a column, each with its own trigger.
+        // The same species can appear more than once (forme variants reached
+        // by different methods), so the key includes the condition + index.
         <div className="flex flex-col gap-3">
-          {node.children.map((child) => (
+          {node.children.map((child, i) => (
             <EvoTreeNode
-              key={child.name}
+              key={`${child.name}-${child.triggerLabel ?? ''}-${i}`}
               node={child}
               currentName={currentName}
               showTrigger

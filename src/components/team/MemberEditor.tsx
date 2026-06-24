@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Trash2 } from 'lucide-react';
 import type { TeamMember } from '../../types/team';
 import {
@@ -12,13 +13,16 @@ import {
   clampIv,
 } from '../../types/team';
 import type { BaseStats } from '../../types/filters';
-import type { NatureOption } from '../../services/teamData';
+import type { NatureOption, ItemOption } from '../../services/teamData';
 import { ALL_TYPES } from '../../lib/typeChart';
 import { spriteUrl, formatPokemonName } from '../../utils/formatters';
+import { Combobox } from '../ui/Combobox';
+import { useLearnset } from '../../hooks/useLearnset';
 
 interface MemberEditorProps {
   member: TeamMember;
   natures: NatureOption[];
+  items: ItemOption[];
   onChange: (patch: Partial<TeamMember>) => void;
   onRemove: () => void;
 }
@@ -29,8 +33,12 @@ const inputClass =
 
 const TERA_TYPES = ALL_TYPES.map((t) => formatPokemonName(t)); // capitalized for Showdown
 
-export function MemberEditor({ member, natures, onChange, onRemove }: MemberEditorProps) {
+export function MemberEditor({ member, natures, items, onChange, onRemove }: MemberEditorProps) {
   const total = evTotal(member.evs);
+  const { data: moveOptions = [], isLoading: movesLoading } = useLearnset(member.num);
+
+  // All items are selectable (no per-species restriction).
+  const itemOptions = useMemo(() => items.map((i) => i.name), [items]);
 
   function setEv(stat: keyof BaseStats, value: number) {
     onChange({ evs: { ...member.evs, [stat]: clampEv(member.evs, stat, value) } });
@@ -92,11 +100,10 @@ export function MemberEditor({ member, natures, onChange, onRemove }: MemberEdit
 
         <label className="block">
           <span className="text-[11px] text-gray-400">Item</span>
-          <input
-            list="items-datalist"
-            className={inputClass}
+          <Combobox
             value={member.item ?? ''}
-            onChange={(e) => onChange({ item: e.target.value || null })}
+            options={itemOptions}
+            onChange={(v) => onChange({ item: v || null })}
             placeholder="Item…"
           />
         </label>
@@ -137,13 +144,13 @@ export function MemberEditor({ member, natures, onChange, onRemove }: MemberEdit
         <span className="text-[11px] text-gray-400">Golpes (até {MAX_MOVES})</span>
         <div className="grid grid-cols-2 gap-2 mt-1">
           {Array.from({ length: MAX_MOVES }).map((_, i) => (
-            <input
+            <Combobox
               key={i}
-              list="moves-datalist"
-              className={inputClass}
               value={member.moves[i] ?? ''}
-              onChange={(e) => setMove(i, e.target.value)}
+              options={moveOptions}
+              onChange={(v) => setMove(i, v)}
               placeholder={`Golpe ${i + 1}`}
+              emptyHint={movesLoading ? 'Carregando golpes…' : 'Sem golpes'}
             />
           ))}
         </div>

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { storageProvider } from '../lib/storage/StorageProvider';
 
 const MAX_RECENT = 12;
 
@@ -39,7 +40,7 @@ export const useHistoryStore = create<HistoryStore>()(
       },
       clearHistory: () => set({ recent: [], counts: {} }),
     }),
-    { name: 'pkdx-history' },
+    { name: 'pkdx-history', storage: createJSONStorage(() => storageProvider) },
   ),
 );
 

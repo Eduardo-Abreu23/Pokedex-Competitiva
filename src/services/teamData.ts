@@ -33,10 +33,12 @@ export async function loadTeamBuilderData(): Promise<TeamBuilderData> {
       .map((n: any) => ({ name: n.name, plus: n.plus, minus: n.minus }))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .sort((a: any, b: any) => a.name.localeCompare(b.name)),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    itemNames: Dex.items.all().map((i: any) => i.name).sort(),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    moveNames: Dex.moves.all().map((m: any) => m.name).sort(),
+    items: Dex.items
+      .all()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((i: any) => ({ name: i.name, itemUser: i.itemUser ?? null }))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .sort((a: any, b: any) => a.name.localeCompare(b.name)),
   };
 }
 

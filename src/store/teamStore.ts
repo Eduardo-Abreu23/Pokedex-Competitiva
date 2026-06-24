@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { storageProvider } from '../lib/storage/StorageProvider';
 import type { Team, TeamMember } from '../types/team';
 import { newId, MAX_MEMBERS } from '../types/team';
 
@@ -103,6 +104,6 @@ export const useTeamStore = create<TeamStore>()(
           ),
         }),
     }),
-    { name: 'pkdx-teams' },
+    { name: 'pkdx-teams', storage: createJSONStorage(() => storageProvider) },
   ),
 );

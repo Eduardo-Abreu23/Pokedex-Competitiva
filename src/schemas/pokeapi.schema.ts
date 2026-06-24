@@ -76,6 +76,7 @@ const evolutionDetailSchema = z.object({
   known_move: namedResourceSchema.nullable(),
   known_move_type: namedResourceSchema.nullable(),
   location: namedResourceSchema.nullable(),
+  gender: z.number().nullable(),
   needs_overworld_rain: z.boolean(),
   party_species: namedResourceSchema.nullable(),
   party_type: namedResourceSchema.nullable(),

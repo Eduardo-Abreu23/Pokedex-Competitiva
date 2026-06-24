@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { storageProvider } from '../lib/storage/StorageProvider';
 
 interface FavoritesStore {
   favorites: number[];
@@ -19,6 +20,6 @@ export const useFavoritesStore = create<FavoritesStore>()(
       },
       isFavorite: (id) => get().favorites.includes(id),
     }),
-    { name: 'pkdx-favorites' },
+    { name: 'pkdx-favorites', storage: createJSONStorage(() => storageProvider) },
   ),
 );

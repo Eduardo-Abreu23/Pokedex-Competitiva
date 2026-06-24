@@ -36,3 +36,21 @@ export function computeDefensiveProfile(types: PokemonTypeName[]): TypeEffective
     return { type: attacker, multiplier: mult };
   }).filter((e) => e.multiplier !== 1);
 }
+
+/** Damage multiplier of one attacking type against a (mono- or dual-) typed defender. */
+export function attackMultiplier(
+  attacker: PokemonTypeName,
+  defenderTypes: PokemonTypeName[],
+): number {
+  return defenderTypes.reduce((acc, d) => acc * (CHART[attacker]?.[d] ?? 1), 1);
+}
+
+/** Defending types that resist (or are immune to) a given attacking type. */
+export function typesResisting(attacker: PokemonTypeName): PokemonTypeName[] {
+  return ALL_TYPES.filter((d) => attackMultiplier(attacker, [d]) < 1);
+}
+
+/** Attacking types that are super-effective against a given defending type. */
+export function typesSuperEffectiveAgainst(defender: PokemonTypeName): PokemonTypeName[] {
+  return ALL_TYPES.filter((t) => attackMultiplier(t, [defender]) >= 2);
+}

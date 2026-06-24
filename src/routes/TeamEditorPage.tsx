@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ArrowLeft, Plus, Upload, Download } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, Download, BarChart3, ChevronDown } from 'lucide-react';
 import { useTeamStore } from '../store/teamStore';
 import { useTeamBuilderData } from '../hooks/useTeamBuilderData';
 import { MemberEditor } from '../components/team/MemberEditor';
+import { TeamAnalysis } from '../components/team/TeamAnalysis';
 import { ComparePicker } from '../components/compare/ComparePicker';
 import { ImportExportModal } from '../components/team/ImportExportModal';
 import { Skeleton } from '../components/ui/Skeleton';
@@ -25,6 +26,7 @@ export default function TeamEditorPage() {
 
   const { data: builderData, isLoading: dataLoading } = useTeamBuilderData();
   const [modal, setModal] = useState<null | { mode: 'import' | 'export'; text?: string }>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   if (!team) {
     return (
@@ -76,18 +78,6 @@ export default function TeamEditorPage() {
         <title>{team.name} — Pokédex Competitiva</title>
       </Helmet>
 
-      {/* Datalists (rendered once) for item/move autocomplete */}
-      {builderData && (
-        <>
-          <datalist id="items-datalist">
-            {builderData.itemNames.map((i) => <option key={i} value={i} />)}
-          </datalist>
-          <datalist id="moves-datalist">
-            {builderData.moveNames.map((m) => <option key={m} value={m} />)}
-          </datalist>
-        </>
-      )}
-
       <div className="max-w-5xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -131,6 +121,7 @@ export default function TeamEditorPage() {
                 key={m.id}
                 member={m}
                 natures={builderData?.natures ?? []}
+                items={builderData?.items ?? []}
                 onChange={(patch) => updateMember(team.id, m.id, patch)}
                 onRemove={() => removeMember(team.id, m.id)}
               />
@@ -142,6 +133,27 @@ export default function TeamEditorPage() {
                   <Plus size={16} /> Adicionar Pokémon ({team.members.length}/{MAX_MEMBERS})
                 </div>
                 <ComparePicker label="Buscar Pokémon…" onSelect={handleAddMember} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Team analysis */}
+        {team.members.length > 0 && (
+          <div className="pt-2">
+            <button
+              onClick={() => setShowAnalysis((v) => !v)}
+              className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
+              aria-expanded={showAnalysis}
+            >
+              <span className="flex items-center gap-2 font-semibold text-gray-800 dark:text-gray-100">
+                <BarChart3 size={18} className="text-red-500" /> Análise do time
+              </span>
+              <ChevronDown size={18} className={`text-gray-400 transition-transform ${showAnalysis ? 'rotate-180' : ''}`} />
+            </button>
+            {showAnalysis && (
+              <div className="mt-4 animate-fade-in">
+                <TeamAnalysis members={team.members} />
               </div>
             )}
           </div>

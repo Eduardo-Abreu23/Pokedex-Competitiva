@@ -84,7 +84,7 @@ export default function HomePage() {
         <meta name="description" content="Consulte stats, habilidades, evoluções e dados competitivos de todos os Pokémon." />
       </Helmet>
 
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
         <div className="text-center space-y-2 py-4">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Pokédex Competitiva</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">

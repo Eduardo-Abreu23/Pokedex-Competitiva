@@ -6,7 +6,7 @@ import { usePokemonDetail } from '../hooks/usePokemon';
 import { useFavoritesStore } from '../store/favoritesStore';
 import { useHistoryStore } from '../store/historyStore';
 import { TypeBadge } from '../components/ui/TypeBadge';
-import { StatChart } from '../components/pokemon/StatChart';
+import { StatsPanel } from '../components/pokemon/StatsPanel';
 import { EvolutionChain } from '../components/pokemon/EvolutionChain';
 import { WeaknessGrid } from '../components/pokemon/WeaknessGrid';
 import { CompetitiveSection } from '../components/competitive/CompetitiveSection';
@@ -77,11 +77,23 @@ export default function PokemonDetailPage() {
         <title>{displayName} — Pokédex Competitiva</title>
         <meta
           name="description"
-          content={`Stats, habilidades, evoluções e dados competitivos de ${displayName}.`}
+          content={`Stats, habilidades, evoluções e dados competitivos de ${displayName} (${formatPokemonNumber(pokemon.id)}).`}
         />
+        <link rel="canonical" href={`/pokemon/${pokemon.name}`} />
+        {/* Open Graph / social previews */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={`${displayName} — Pokédex Competitiva`} />
+        <meta
+          property="og:description"
+          content={`Stats, habilidades, evoluções e builds competitivas de ${displayName}.`}
+        />
+        <meta property="og:image" content={pokemon.artworkUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${displayName} — Pokédex Competitiva`} />
+        <meta name="twitter:image" content={pokemon.artworkUrl} />
       </Helmet>
 
-      <div className="max-w-4xl mx-auto space-y-5">
+      <div className="max-w-4xl mx-auto space-y-5 animate-fade-in">
         {/* Back + favorite */}
         <div className="flex items-center justify-between">
           <button
@@ -170,10 +182,8 @@ export default function PokemonDetailPage() {
         {/* Competitive data (Phase 2) — auto-selected recommended build */}
         <CompetitiveSection pokemonName={pokemon.name} displayName={displayName} />
 
-        {/* Stats */}
-        <SectionCard title="Stats Base">
-          <StatChart stats={pokemon.stats} />
-        </SectionCard>
+        {/* Stats (bars / radar toggle) */}
+        <StatsPanel stats={pokemon.stats} />
 
         {/* Abilities */}
         <SectionCard title="Habilidades">

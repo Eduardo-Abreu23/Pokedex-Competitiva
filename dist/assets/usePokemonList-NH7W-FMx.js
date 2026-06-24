@@ -1,0 +1,6 @@
+import{c as y,r as i}from"./index-g-43JoMB.js";import{u as d,f as p,z as l,A as P}from"./pokemon.adapter-DHWECzNh.js";/**
+ * @license lucide-react v0.468.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const q=y("Search",[["circle",{cx:"11",cy:"11",r:"8",key:"4ej97u"}],["path",{d:"m21 21-4.3-4.3",key:"1qie3q"}]]);function x(e,t=300){const[s,n]=i.useState(e);return i.useEffect(()=>{const o=setTimeout(()=>n(e),t);return()=>clearTimeout(o)},[e,t]),s}const m=24;function S(){return d({queryKey:["pokemon-names-all"],queryFn:async()=>(await p()).results.map(t=>l(t.name,t.url)),staleTime:1e3*60*60*24})}function L(e){const{data:t,isLoading:s}=S();if(!e.trim())return{results:[],isLoading:s};const n=e.trim(),o=n.toLowerCase(),a=/^\d+$/.test(n),c=(t??[]).filter(r=>a?String(r.id).startsWith(n):r.name.includes(o));return{results:(a?c.sort((r,u)=>{const f=String(r.id)===n?0:1,k=String(u.id)===n?0:1;return f-k||r.id-u.id}):c).slice(0,20),isLoading:s}}function b(e){return d({queryKey:["pokemon-page",e],queryFn:async()=>{const t=await P(m,e*m);return{items:t.results.map(s=>l(s.name,s.url)),total:t.count}}})}export{m as P,q as S,L as a,b,x as u};
