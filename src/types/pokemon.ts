@@ -20,6 +20,9 @@ export interface EvolutionNode {
   id: number;
   spriteUrl: string;
   triggerLabel: string | null;
+  /** Discriminator (e.g. time of day) when several methods reach the same
+   * species as different formes — used to resolve the forme-specific sprite. */
+  formHint?: string | null;
   children: EvolutionNode[];
 }
 

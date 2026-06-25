@@ -107,6 +107,16 @@ export const evolutionChainSchema = z.object({
   chain: chainLinkSchema,
 });
 
+/** Minimal schema for a species' formes/varieties — for forme-specific sprites. */
+export const speciesVarietiesSchema = z.object({
+  varieties: z.array(
+    z.object({
+      is_default: z.boolean(),
+      pokemon: z.object({ name: z.string(), url: z.string() }),
+    }),
+  ),
+});
+
 /** Minimal schema for a Pokémon's learnset — only the move names matter. */
 export const learnsetSchema = z.object({
   moves: z.array(

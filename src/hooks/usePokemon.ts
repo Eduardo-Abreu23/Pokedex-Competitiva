@@ -4,12 +4,14 @@ import {
   fetchPokemonSpecies,
   fetchEvolutionChain,
   fetchEncounters,
+  fetchSpeciesVarieties,
 } from '../services/pokeapi';
 import {
   adaptPokemonDetail,
   adaptPokemonSpecies,
   adaptEvolutionChain,
   adaptEncounters,
+  enrichEvolutionForms,
 } from '../services/adapters/pokemon.adapter';
 
 export function usePokemonDetail(nameOrId: string) {
@@ -32,13 +34,17 @@ export function usePokemonDetail(nameOrId: string) {
         enabled,
       },
       {
-        queryKey: ['evolution-chain', nameOrId],
+        // v2: query now returns the adapted + forme-enriched tree (shape change
+        // from the raw chain), so the key is bumped to drop stale persisted data.
+        queryKey: ['evolution-tree-v2', nameOrId],
         queryFn: async () => {
           const raw = await fetchPokemon(nameOrId);
           const species = await fetchPokemonSpecies(raw.id);
-          return fetchEvolutionChain(species.evolution_chain.url);
+          const chain = await fetchEvolutionChain(species.evolution_chain.url);
+          const tree = adaptEvolutionChain(chain);
+          await enrichEvolutionForms(tree, fetchSpeciesVarieties);
+          return tree;
         },
-        select: adaptEvolutionChain,
         enabled,
       },
       {

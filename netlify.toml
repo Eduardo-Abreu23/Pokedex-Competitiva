@@ -1,0 +1,18 @@
+# Netlify deploy config — makes a Git-connected build deterministic.
+# The blank page came from Netlify not serving the built `dist/` (wrong publish
+# dir / build not run), so assets 404'd and the SPA fallback returned index.html
+# for everything. Pinning the build command + publish dir fixes it.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback: client-side routes (e.g. /pokemon/garchomp, /teams) resolve to
+# index.html. Netlify serves existing static files (assets) before this rule.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

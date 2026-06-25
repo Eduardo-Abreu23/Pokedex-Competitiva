@@ -5,11 +5,13 @@ import {
   evolutionChainSchema,
   encountersSchema,
   learnsetSchema,
+  speciesVarietiesSchema,
   type RawPokemonDetail,
   type RawPokemonSpecies,
   type RawEvolutionChain,
   type RawEncounters,
 } from '../schemas/pokeapi.schema';
+import { idFromUrl } from '../utils/formatters';
 
 const BASE = 'https://pokeapi.co/api/v2';
 
@@ -56,4 +58,20 @@ export async function fetchEncounters(id: number): Promise<RawEncounters> {
 export async function fetchLearnset(id: number | string): Promise<string[]> {
   const data = await fetchAndParse(`${BASE}/pokemon/${id}`, learnsetSchema);
   return data.moves.map((m) => m.move.name);
+}
+
+export interface SpeciesVariety {
+  name: string;
+  id: number;
+  isDefault: boolean;
+}
+
+/** Returns a species' formes/varieties (name + dex id) — for forme-specific sprites. */
+export async function fetchSpeciesVarieties(name: string): Promise<SpeciesVariety[]> {
+  const data = await fetchAndParse(`${BASE}/pokemon-species/${name}`, speciesVarietiesSchema);
+  return data.varieties.map((v) => ({
+    name: v.pokemon.name,
+    id: idFromUrl(v.pokemon.url),
+    isDefault: v.is_default,
+  }));
 }

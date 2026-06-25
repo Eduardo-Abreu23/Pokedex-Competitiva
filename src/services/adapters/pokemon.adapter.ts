@@ -143,37 +143,44 @@ function formatOneDetail(d: EvolutionDetail): string {
 }
 
 /**
- * Returns one condition label per distinct evolution METHOD for a branch.
- *
- * Keeps only the highest-priority methods, then formats each individually —
- * so a species reachable several ways yields several labels (Rockruff →
- * Lycanroc has 3: "Nível 25 (dia)", "Nível 25 (noite)", "Nível 25 (crepúsculo)").
- * Each label becomes its own evolution card. Identical labels are de-duped.
+ * Returns the distinct highest-priority evolution methods for a branch, keeping
+ * the source detail of each (for forme resolution). De-duped by label, so a
+ * species reachable several ways yields one entry per method (Rockruff →
+ * Lycanroc: 3 — "Nível 25 (dia/noite/crepúsculo)").
  */
-function evolutionTriggerLabels(details: EvolutionDetail[]): (string | null)[] {
-  if (!details.length) return [null];
+function keptMethods(details: EvolutionDetail[]): { label: string | null; detail: EvolutionDetail | null }[] {
+  if (!details.length) return [{ label: null, detail: null }];
 
   const minPriority = Math.min(...details.map(detailPriority));
   const kept = details.filter((d) => detailPriority(d) === minPriority);
-  const labels = kept.map(formatOneDetail);
-  return [...new Set(labels)];
+  const byLabel = new Map<string, EvolutionDetail>();
+  for (const d of kept) {
+    const label = formatOneDetail(d);
+    if (!byLabel.has(label)) byLabel.set(label, d);
+  }
+  return [...byLabel.entries()].map(([label, detail]) => ({ label, detail }));
 }
 
 /**
  * Builds evolution nodes for one chain link. A link points at a single species
  * but may list several methods (the PokéAPI keeps forme variants — e.g. the
  * three Lycanroc forms — under one species). We emit ONE node per distinct
- * method so each possible destination is its own card with its own condition.
+ * method so each possible destination is its own card. When a species splits
+ * into formes this way, `formHint` records the discriminator (time of day) so
+ * the forme-specific sprite can be resolved afterwards.
  */
 function buildEvolutionNodes(link: RawChainLink): EvolutionNode[] {
   const id = idFromUrl(link.species.url);
   const children = link.evolves_to.flatMap(buildEvolutionNodes);
+  const methods = keptMethods(link.evolution_details);
+  const isFormeSplit = methods.length > 1;
 
-  return evolutionTriggerLabels(link.evolution_details).map((label) => ({
+  return methods.map(({ label, detail }) => ({
     name: link.species.name,
     id,
     spriteUrl: spriteUrl(id),
     triggerLabel: label,
+    formHint: isFormeSplit ? detail?.time_of_day || null : null,
     children,
   }));
 }
@@ -186,8 +193,46 @@ export function adaptEvolutionChain(raw: RawEvolutionChain): EvolutionNode {
     id,
     spriteUrl: spriteUrl(id),
     triggerLabel: null,
+    formHint: null,
     children: root.evolves_to.flatMap(buildEvolutionNodes),
   };
+}
+
+type SpeciesVariety = { name: string; id: number; isDefault: boolean };
+
+/** Maps a forme discriminator (time of day) to the matching variety's dex id. */
+function resolveFormeSpriteId(
+  hint: string | null | undefined,
+  varieties: SpeciesVariety[],
+  fallbackId: number,
+): number {
+  const def = varieties.find((v) => v.isDefault);
+  if (!hint || hint === 'day') return def?.id ?? fallbackId;
+  if (hint === 'night') return varieties.find((v) => /midnight|night/.test(v.name))?.id ?? fallbackId;
+  if (hint === 'dusk') return varieties.find((v) => v.name.includes('dusk'))?.id ?? fallbackId;
+  return varieties.find((v) => v.name.includes(hint))?.id ?? fallbackId;
+}
+
+/**
+ * Resolves forme-specific sprites for nodes that share a species but differ by
+ * forme (Lycanroc Midday/Midnight/Dusk). Mutates the tree in place, fetching a
+ * species' varieties once. `fetchVarieties` is injected to keep the adapter
+ * free of network concerns. Failures fall back to the base sprite (no crash).
+ */
+export async function enrichEvolutionForms(
+  node: EvolutionNode,
+  fetchVarieties: (name: string) => Promise<SpeciesVariety[]>,
+): Promise<void> {
+  const formeNodes = node.children.filter((c) => c.formHint);
+  for (const name of new Set(formeNodes.map((n) => n.name))) {
+    const varieties = await fetchVarieties(name).catch(() => null);
+    if (!varieties) continue;
+    for (const n of formeNodes.filter((c) => c.name === name)) {
+      n.id = resolveFormeSpriteId(n.formHint, varieties, n.id);
+      n.spriteUrl = spriteUrl(n.id);
+    }
+  }
+  for (const child of node.children) await enrichEvolutionForms(child, fetchVarieties);
 }
 
 export function adaptEncounters(raw: RawEncounters): Encounter[] {
